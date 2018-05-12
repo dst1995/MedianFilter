@@ -6,8 +6,12 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 public class Test {
+        public static Stopwatch stopwatch = new Stopwatch();
 
         public static void main(String[] a) throws Throwable {
+
+
+            stopwatch.start();
             Color[] filterColors = {Color.BLACK, Color.WHITE};
             String photo = "yen110.jpg";
 
@@ -19,5 +23,7 @@ public class Test {
             FilterParallel filter = new FilterParallel(img, 4);
             BufferedImage imgFiltered = filter.filterWithMedian();
             ImageIO.write(imgFiltered, "jpg", output);
+
+            System.out.println(stopwatch.getDuration());
         }
 }

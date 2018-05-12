@@ -17,13 +17,19 @@ public class Test {
 
             File f = new File("./photos/noisy/" + photo);        //Input Photo File
 
-            File output = new File("./photos/median/" + photo);
+
             BufferedImage img = ImageIO.read(f);
 
-            FilterParallel filter = new FilterParallel(img, 4);
-            BufferedImage imgFiltered = filter.filterWithMedian();
-            ImageIO.write(imgFiltered, "jpg", output);
+            FilterParallel filterPar = new FilterParallel(img, 5);
+            BufferedImage imgFilteredPar = filterPar.filterWithMedian();
+            File outputPar = new File("./photos/median/" + photo + "_par");
+            ImageIO.write(imgFilteredPar, "jpg", outputPar);
+            System.out.println("Parallel:" + stopwatch.getDuration());
 
-            System.out.println(stopwatch.getDuration());
+            FilterSync filterSer = new FilterSync(img);
+            BufferedImage imgFilteredSer = filterSer.filterWithMedian();
+            File outputSer = new File("./photos/median/" + photo + "_ser");
+            ImageIO.write(imgFilteredSer, "jpg", outputSer);
+            System.out.println("Serial:" + stopwatch.getDuration());
         }
 }

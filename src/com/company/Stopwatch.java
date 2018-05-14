@@ -41,8 +41,8 @@ public class Stopwatch {
     }
 
     public void restart() {
-        this.startTime = System.nanoTime();
         this.endTime = Long.valueOf(0);
         this.duration = Long.valueOf(0);
+        this.startTime = System.nanoTime();
     }
 }

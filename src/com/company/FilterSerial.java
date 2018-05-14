@@ -5,20 +5,27 @@ import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class FilterSync {
+public class FilterSerial implements MedianFilter{
 
     private BufferedImage image;
-    private Color[] filterColors = {Color.BLACK, Color.WHITE};
+    private int white;
+    private int black;
 
-    public FilterSync(BufferedImage image) {
+    public FilterSerial(BufferedImage image) {
         this.image = image;
+    }
+    public FilterSerial(BufferedImage img, int white, int black) {
+        this.image = img;
+        this.white = white;
+        this.black = black;
     }
 
     public BufferedImage filterWithMedian() {
         Color[] pixel = new Color[9];
         for(int i = 1; i< image.getWidth()-1; i++) {
             for (int j = 1; j < image.getHeight() - 1; j++) {
-                if (!Arrays.asList(filterColors).contains(new Color(image.getRGB(i, j)))) continue;
+                int pixelColor = new Color(image.getRGB(i, j)).getRGB();
+                if (!(pixelColor > white || pixelColor < black)) continue;
 
                 pixel[0] = new Color(image.getRGB(i - 1, j - 1));
                 pixel[1] = new Color(image.getRGB(i - 1, j));

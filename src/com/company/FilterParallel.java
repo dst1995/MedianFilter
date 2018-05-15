@@ -15,10 +15,11 @@ import java.util.Comparator;
  *        Isolate the R,G,B values of each pixels and put them in an array.Sort the arrays.Get the Middle value of the array
  *        Which will be the Median of the color values in those 9 pixels.Set the color to the Target pixel and move on!
  */
-public class FilterParallel {
+public class FilterParallel implements MedianFilter{
 
     private BufferedImage image;
-    private Color[] filterColors = {Color.BLACK, Color.WHITE};
+    private int white;
+    private int black;
     private int threads;
 
     public FilterParallel(BufferedImage image, int threads) {
@@ -26,9 +27,10 @@ public class FilterParallel {
         this.threads = threads;
     }
 
-    public FilterParallel(BufferedImage image, Color[] filterColors, int threads) {
+    public FilterParallel(BufferedImage image, int threads, int white, int black) {
         this.image = image;
-        this.filterColors = filterColors;
+        this.white = white;
+        this.black = black;
         this.threads = threads;
     }
 
@@ -39,13 +41,14 @@ public class FilterParallel {
         MedianFilter[] workers = new MedianFilter[threads];
         for (int i = 0; i < threads; i++) {
             int height = subHeight * i;
-            workers[i] = new MedianFilter(0, height, image.getWidth(), subHeight);
+            workers[i] = new MedianFilter(0, height , image.getWidth(), subHeight + height);
             workers[i].run();
         }
 
         for (MedianFilter worker : workers) {
             try {
                 worker.join();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -75,7 +78,8 @@ public class FilterParallel {
                 for (int j = this.startY; j < this.height - 1; j++) {
                     if(j >= image.getHeight() -1 ) break;
 
-                    if (Arrays.asList(filterColors).contains(new Color(image.getRGB(i, j)))) {
+//                    int pixelColor = new Color(image.getRGB(i, j)).getRGB();
+                    if (/*pixelColor > white || pixelColor < black*/ 1 == 1 ) {
                         image.setRGB(i, j, calcMedianPixel(i, j));
                     }
                 }

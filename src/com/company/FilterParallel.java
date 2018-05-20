@@ -15,16 +15,20 @@ import java.util.Comparator;
  *        Isolate the R,G,B values of each pixels and put them in an array.Sort the arrays.Get the Middle value of the array
  *        Which will be the Median of the color values in those 9 pixels.Set the color to the Target pixel and move on!
  */
-public class FilterParallel implements MedianFilter{
+public class FilterParallel implements MedianFilter {
 
     private BufferedImage image;
     private int white;
     private int black;
+    private int imgWidth;
+    private int imgHeight;
     private int threads;
 
     public FilterParallel(BufferedImage image, int threads) {
         this.image = image;
         this.threads = threads;
+        this.imgHeight = image.getHeight();
+        this.imgWidth = image.getWidth();
     }
 
     public FilterParallel(BufferedImage image, int threads, int white, int black) {
@@ -32,6 +36,8 @@ public class FilterParallel implements MedianFilter{
         this.white = white;
         this.black = black;
         this.threads = threads;
+        this.imgHeight = image.getHeight();
+        this.imgWidth = image.getWidth();
     }
 
     //dont know if correct dimensions
@@ -41,8 +47,8 @@ public class FilterParallel implements MedianFilter{
         MedianFilter[] workers = new MedianFilter[threads];
         for (int i = 0; i < threads; i++) {
             int height = subHeight * i;
-            workers[i] = new MedianFilter(0, height , image.getWidth(), subHeight + height);
-            workers[i].run();
+            workers[i] = new MedianFilter(0, height, this.imgWidth, subHeight + height);
+            workers[i].start();
         }
 
         for (MedianFilter worker : workers) {
@@ -65,23 +71,22 @@ public class FilterParallel implements MedianFilter{
         private int height;     // bottom right coordinate of the sub image
 
         private MedianFilter(int startX, int startY, int width, int height) {
-            this.startX = startX + 1;
-            this.startY = startY + 1;
-            this.width = width;
+            this.startX = startX;
+            this.startY = startY;
+            this.width = width - 1;
             this.height = height;
         }
 
         @Override
         public void run() {
-            for (int i = this.startX; i < this.width - 1; i++) {
-                if(i >= image.getWidth()) break;
-                for (int j = this.startY; j < this.height - 1; j++) {
-                    if(j >= image.getHeight() -1 ) break;
+            for (int i = this.startX; i < this.width; i++) {
+                if (i >= image.getWidth()) break;
+                for (int j = this.startY; j < this.height; j++) {
+                    if (j >= image.getHeight() - 1) break;
 
 //                    int pixelColor = new Color(image.getRGB(i, j)).getRGB();
-                    if (/*pixelColor > white || pixelColor < black*/ 1 == 1 ) {
-                        image.setRGB(i, j, calcMedianPixel(i, j));
-                    }
+//                    if (!(pixelColor > white || pixelColor < black)) continue;
+                    image.setRGB(i, j, calcMedianPixel(i, j));
                 }
             }
         }
@@ -92,7 +97,11 @@ public class FilterParallel implements MedianFilter{
             int k = 0;
             for (int x = i - 1; x <= i + 1; x++) {
                 for (int y = j - 1; y <= j + 1; y++) {
-                    pixel[k] = new Color(image.getRGB(x, y));
+                    if (isOutofbounds(x, y)) {
+                        pixel[k] = Color.WHITE;
+                    } else {
+                        pixel[k] = new Color(image.getRGB(x, y));
+                    }
                     k++;
                 }
             }
@@ -108,6 +117,15 @@ public class FilterParallel implements MedianFilter{
                 }
             });
             return arr;
+        }
+
+        private boolean isOutofbounds(int i, int j) {
+            if (i < 0 || i > imgWidth) {
+                return true;
+            } else if (j < 0 || j > imgHeight) {
+                return true;
+            }
+            return false;
         }
     }
 }

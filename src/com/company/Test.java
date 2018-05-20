@@ -8,34 +8,43 @@ import java.util.ArrayList;
 
 public class Test {
     public static Stopwatch stopwatch = new Stopwatch();
-    public static String photo = "landscape.jpg";
-    public static int WHITE = new Color(240, 240, 240).getRGB();
-    public static int BLACK = new Color(15, 15, 15).getRGB();
-    public static final int THREADS = 1;
-    public static final int TEST_CASES = 10;
+    public static final String PHOTO = "landscape4k.jpg";
+    public static final int WHITE = new Color(240, 240, 240).getRGB();
+    public static final int BLACK = new Color(15, 15, 15).getRGB();
+    public static final int THREADS = 10;
+    public static final int TEST_CASES = 100;
+    public static final boolean TEST = false;
+    public static final int OUTPUT = 2; //what kind of image output, 1: serial, 2: parallel, 3: both
 
     public static void main(String[] a) throws Throwable {
 
-        int cl = new Color(255, 255, 255).getRGB();
-
-        File f = new File("./photos/noisy/" + photo);        //Input Photo File
-
+        File f = new File("./photos/noisy/" + PHOTO);        //Input Photo File
         BufferedImage img = ImageIO.read(f);
 
-        FilterParallel filterPar = new FilterParallel(img, THREADS, WHITE, BLACK);
-        System.out.println("Parallel: " + testPerformance(filterPar));
+        FilterParallel filterPar = new FilterParallel(img, THREADS);
+        FilterSerial filterSer = new FilterSerial(img);
 
-        FilterSerial filterSer = new FilterSerial(img, WHITE, BLACK);
-        System.out.println("Serial: " + testPerformance(filterSer));
+        if(TEST) {
+            System.out.println("Parallel: " + testPerformance(filterPar));
+            System.out.println("Serial: " + testPerformance(filterSer));
+        }
 
+        int[] threads = {1, 2, 4, 8, 16, 50, 100};
+        for (int thread : threads) {
+            System.out.println(thread + "#: " +  testPerformance(new FilterParallel(img, thread)));
+        }
 
-        BufferedImage imgFilteredPar = filterPar.filterWithMedian();
-        File outputPar = new File("./photos/median/" + photo);
-        ImageIO.write(imgFilteredPar, "jpg", outputPar);
+        if(OUTPUT == 1 || OUTPUT == 3) { // serial
+            BufferedImage imgFilteredSer = filterSer.filterWithMedian();
+            File outputSer = new File("./photos/median/" + "ser_" + PHOTO);
+            ImageIO.write(imgFilteredSer, "jpg", outputSer);
+        }
+        if(OUTPUT == 2 || OUTPUT == 3) { // parallel
+            BufferedImage imgFilteredPar = filterPar.filterWithMedian();
+            File outputPar = new File("./photos/median/" + "par_" + PHOTO);
+            ImageIO.write(imgFilteredPar, "jpg", outputPar);
+        }
 
-//        BufferedImage imgFilteredSer = filterSer.filterWithMedian();
-//        File outputSer = new File("./photos/median/" + photo);
-//        ImageIO.write(imgFilteredSer, "jpg", outputSer);
     }
 
     public static double testPerformance(MedianFilter filter) {

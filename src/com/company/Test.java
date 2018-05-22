@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class Test {
     public static Stopwatch stopwatch = new Stopwatch();
-    public static final String PHOTO = "landscape4k.jpg";
+    public static final String PHOTO = "yen110.jpg";
     public static final int WHITE = new Color(240, 240, 240).getRGB();
     public static final int BLACK = new Color(15, 15, 15).getRGB();
     public static final int THREADS = 10;
@@ -29,10 +29,10 @@ public class Test {
             System.out.println("Serial: " + testPerformance(filterSer));
         }
 
-        int[] threads = {1, 2, 4, 8, 16, 50, 100};
-        for (int thread : threads) {
-            System.out.println(thread + "#: " +  testPerformance(new FilterParallel(img, thread)));
-        }
+//        int[] threads = {1, 2, 4, 8, 16, 50, 100};
+//        for (int thread : threads) {
+//            System.out.println(thread + "#: " +  testPerformance(new FilterParallel(img, thread)));
+//        }
 
         if(OUTPUT == 1 || OUTPUT == 3) { // serial
             BufferedImage imgFilteredSer = filterSer.filterWithMedian();

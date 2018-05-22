@@ -1,11 +1,11 @@
 package com.company;
 
-import javax.imageio.ImageIO;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 /*
  * Author: Shenbaga Prasanna,IT,SASTRA University;
@@ -23,6 +23,7 @@ public class FilterParallel implements MedianFilter {
     private int imgWidth;
     private int imgHeight;
     private int threads;
+    private List<BufferedImage> subImages = new ArrayList<>();
 
     public FilterParallel(BufferedImage image, int threads) {
         this.image = image;
@@ -42,12 +43,21 @@ public class FilterParallel implements MedianFilter {
 
     //dont know if correct dimensions
     public BufferedImage filterWithMedian() {
-
         int subHeight = image.getHeight() / threads;
         MedianFilter[] workers = new MedianFilter[threads];
+
+        int totalHeight = image.getHeight();
+        int totalWidth = image.getWidth();
+
+        //for loop om de bufferedImage op te delen in subImages
+        for (int j = 0; j < threads; j++) {
+            int height = subHeight * j;
+            subImages.set(j, image.getSubimage(0, height, this.imgWidth, subHeight + height));
+        }
+
         for (int i = 0; i < threads; i++) {
             int height = subHeight * i;
-            workers[i] = new MedianFilter(0, height, this.imgWidth, subHeight + height);
+            workers[i] = new MedianFilter(subImages.get(i));
             workers[i].start();
         }
 
@@ -60,7 +70,17 @@ public class FilterParallel implements MedianFilter {
             }
         }
 
-        return this.image;
+        //concatonate al the subimages
+        int heightCurr = 0;
+        BufferedImage concatImage = new BufferedImage(totalWidth, totalHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = concatImage.createGraphics();
+        for (int j = 0; j < subImages.size(); j++) {
+            g2d.drawImage(subImages.get(j), 0, heightCurr, null);
+            heightCurr += subImages.get(j).getHeight();
+        }
+        g2d.dispose();
+
+        return concatImage;
     }
 
     class MedianFilter extends Thread {
@@ -75,6 +95,13 @@ public class FilterParallel implements MedianFilter {
             this.startY = startY;
             this.width = width - 1;
             this.height = height;
+        }
+
+        private MedianFilter(BufferedImage image) {
+            this.startX = image.getMinX();
+            this.startY = image.getMinY();
+            this.width = image.getWidth();
+            this.height = image.getHeight();
         }
 
         @Override

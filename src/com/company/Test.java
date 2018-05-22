@@ -29,9 +29,11 @@ public class Test {
             System.out.println("Serial: " + testPerformance(filterSer));
         }
 
-        int[] threads = {1, 2, 4, 8, 16, 50, 100};
-        for (int thread : threads) {
-            System.out.println(thread + "#: " +  testPerformance(new FilterParallel(img, thread)));
+        if(false) {
+            int[] threads = {1, 2, 4, 8, 16, 50, 100};
+            for (int thread : threads) {
+                System.out.println(thread + "#: " + testPerformance(new FilterParallel(img, thread)));
+            }
         }
 
         if(OUTPUT == 1 || OUTPUT == 3) { // serial

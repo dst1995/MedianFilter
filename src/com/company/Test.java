@@ -9,11 +9,17 @@ import java.util.ArrayList;
 public class Test {
     public static Stopwatch stopwatch = new Stopwatch();
     public static final String PHOTO = "landscape4k.jpg";
+
     public static final int WHITE = new Color(240, 240, 240).getRGB();
     public static final int BLACK = new Color(15, 15, 15).getRGB();
-    public static final int THREADS = 10;
     public static final int TEST_CASES = 100;
-    public static final boolean TEST = false;
+
+    public static final boolean TEST = true;
+    public static final int THREADS = 200;
+
+    public static final boolean MULTITHREAD_TEST = true;
+    public static final int[] TEST_THREADS = {1, 2, 4, 8, 16, 50, 100, 200};
+
     public static final int OUTPUT = 2; //what kind of image output, 1: serial, 2: parallel, 3: both
 
     public static void main(String[] a) throws Throwable {
@@ -25,14 +31,13 @@ public class Test {
         FilterSerial filterSer = new FilterSerial(img);
 
         if(TEST) {
-            System.out.println("Parallel: " + testPerformance(filterPar));
-            System.out.println("Serial: " + testPerformance(filterSer));
+            System.out.println("Old Parallel 200 threads: " + testPerformance(new FilterParallelOld(img, THREADS)));
+//            System.out.println("Serial: " + testPerformance(filterSer));
         }
 
-        if(false) {
-            int[] threads = {1, 2, 4, 8, 16, 50, 100};
-            for (int thread : threads) {
-                System.out.println(thread + "#: " + testPerformance(new FilterParallel(img, thread)));
+        if(MULTITHREAD_TEST) {
+            for (int thread : TEST_THREADS) {
+                System.out.println(thread + "#new: " + testPerformance(new FilterParallel(img, thread)));
             }
         }
 
@@ -47,6 +52,7 @@ public class Test {
             ImageIO.write(imgFilteredPar, "jpg", outputPar);
         }
 
+        System.out.println("Finished");
     }
 
     public static double testPerformance(MedianFilter filter) {

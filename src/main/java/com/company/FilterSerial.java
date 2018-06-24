@@ -7,6 +7,7 @@ import java.util.Comparator;
 
 public class FilterSerial implements MedianFilter{
 
+    private Stopwatch stopwatch = new Stopwatch();
     private BufferedImage image;
     private int white;
     private int black;

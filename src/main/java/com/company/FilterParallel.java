@@ -3,52 +3,30 @@ package com.company;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
-import java.util.List;
 
-/*
- * Author: Shenbaga Prasanna,IT,SASTRA University;
- * Program: Median FilterParallel To Reduce Noice in Image
- * Date: 9/7/2013
- * Logic: Captures the colour of 8 pixels around the target pixel.Including the target pixel there will be 9 pixels.
- *        Isolate the R,G,B values of each pixels and put them in an array.Sort the arrays.Get the Middle value of the array
- *        Which will be the Median of the color values in those 9 pixels.Set the color to the Target pixel and move on!
- */
+
 public class FilterParallel implements MedianFilter {
 
+    private Stopwatch stopwatch = new Stopwatch();
     private BufferedImage imageMain;
-    private int white;
-    private int black;
     private int imgWidth;
     private int imgHeight;
     private int threads;
-    private List<BufferedImage> subImages;
+    private BufferedImage[] subImages;
 
     public FilterParallel(BufferedImage imageMain, int threads) {
         this.imageMain = imageMain;
-        this.threads = threads;
         this.imgHeight = imageMain.getHeight();
         this.imgWidth = imageMain.getWidth();
-        this.subImages = new ArrayList<BufferedImage>(Collections.nCopies(threads, null));
+        this.threads = (threads < imgHeight) ? threads : imgHeight;
+        this.subImages = new BufferedImage[this.threads];
     }
 
-    public FilterParallel(BufferedImage imageMain, int threads, int white, int black) {
-        this.imageMain = imageMain;
-        this.white = white;
-        this.black = black;
-        this.threads = threads;
-        this.imgHeight = imageMain.getHeight();
-        this.imgWidth = imageMain.getWidth();
-        this.subImages = new ArrayList<BufferedImage>(Collections.nCopies(threads, null));
-    }
-
-    //dont know if correct dimensions
     public BufferedImage filterWithMedian() {
-        int subHeight = imageMain.getHeight() / threads;
+
+        int subHeight = imageMain.getHeight() / threads;   //max height of a subImg
         MedianFilterThread[] workers = new MedianFilterThread[threads];
-
-        int totalHeight = imageMain.getHeight();
-        int totalWidth = imageMain.getWidth();
-
+        //create all the threads and start them
         for (int i = 0; i < threads; i++) {
             int startHeight = subHeight * i;
             BufferedImage subImg = imageMain.getSubimage(0, startHeight, this.imgWidth, subHeight);
@@ -56,6 +34,7 @@ public class FilterParallel implements MedianFilter {
             workers[i].start();
         }
 
+        //wait for all threads
         for (MedianFilterThread worker : workers) {
             try {
                 worker.join();
@@ -65,19 +44,23 @@ public class FilterParallel implements MedianFilter {
             }
         }
 
-        //concatonate al the subimages
+
+        return concatenateImage(subImages);
+    }
+
+    private BufferedImage concatenateImage(BufferedImage[] subImages) {
         int heightCurr = 0;
         BufferedImage concatImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2d = concatImage.createGraphics();
-        for (int j = 0; j < subImages.size(); j++) {
-            BufferedImage si = subImages.get(j);
-            g2d.drawImage(subImages.get(j), 0, heightCurr, null);
-            heightCurr += subImages.get(j).getHeight();
+        for (int j = 0; j < subImages.length; j++) {
+            g2d.drawImage(subImages[j], 0, heightCurr, null);
+            heightCurr += subImages[j].getHeight();
         }
         g2d.dispose();
 
         return concatImage;
     }
+
 
     class MedianFilterThread extends Thread {
 
@@ -116,7 +99,7 @@ public class FilterParallel implements MedianFilter {
                     this.subImg.setRGB(i, j, calcMedianPixel(i, j));
                 }
             }
-            subImages.set(this.id, this.subImg);
+            subImages[this.id] = this.subImg;
         }
 
         private int calcMedianPixel(int i, int j) {

@@ -41,23 +41,23 @@ public class FilterProcessor {
             MessageConsumer consumer = session.createConsumer(in);
             MessageProducer producer = session.createProducer(out);
 
-            ObjectMapper mapper = new ObjectMapper();
-
             while(true) {
                 // Wait for a message
                 Message message = consumer.receive();
-                System.out.println("received subImage to process");
+
                 if (message instanceof ActiveMQObjectMessage) {
                     ObjectMessage objMessage = (ObjectMessage) message;
                     MedianSend receivedMsg = (MedianSend) objMessage.getObject();
 
+                    //create thread for image
                     ThreadManager tm = new ThreadManager(session, producer);
                     BufferedImage receivedSubImage = converter.byteToImage(receivedMsg.getSubImage());
                     tm.createThread(receivedMsg.getId(), receivedSubImage);
-
+                    System.out.println();
                 } else {
                     throw new IllegalArgumentException("Unexpected message " + message);
                 }
+
             }
 
         } catch (JMSException | IOException e) {
@@ -66,6 +66,7 @@ public class FilterProcessor {
 
     }
 
+    //is responsible for creating a thread and returning the filtered image to the client
     static class ThreadManager implements FilterListener {
         private Session session;
         private MessageProducer producer;
@@ -92,7 +93,6 @@ public class FilterProcessor {
 
                 ObjectMessage objMessage = session.createObjectMessage(msgReturn);
                 this.producer.send(objMessage);
-                System.out.println("message sent: " + msgReturn.toString());
             } catch(JMSException | IOException e) {
                 System.out.println(e);
             }

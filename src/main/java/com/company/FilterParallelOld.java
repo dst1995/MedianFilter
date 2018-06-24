@@ -1,20 +1,11 @@
 package com.company;
 
-import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/*
- * Author: Shenbaga Prasanna,IT,SASTRA University;
- * Program: Median FilterParallel To Reduce Noice in Image
- * Date: 9/7/2013
- * Logic: Captures the colour of 8 pixels around the target pixel.Including the target pixel there will be 9 pixels.
- *        Isolate the R,G,B values of each pixels and put them in an array.Sort the arrays.Get the Middle value of the array
- *        Which will be the Median of the color values in those 9 pixels.Set the color to the Target pixel and move on!
- */
+
 public class FilterParallelOld implements MedianFilter {
 
     private BufferedImage image;

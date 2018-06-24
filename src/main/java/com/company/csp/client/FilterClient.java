@@ -22,19 +22,20 @@ public class FilterClient {
     public static void main(String[] args) throws Throwable{
         System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES","*");
 
-        String photo = (args[0] != null) ? args[0] : "yen110.jpg";
-        int threads = (args[1] != null) ? Integer.parseInt(args[1]) : 10;
+        //check if parameters were given
+        String photoPath = (args.length > 0)? args[0] : "./photos/noisy/landscape.jpg";
+        int threads = (args.length > 1) ? Integer.parseInt(args[1]) : 200;
 
-        File f = new File("./photos/noisy/" + photo);        //Input Photo File
+        File f = new File(photoPath);        //Input Photo File
         BufferedImage mainImageOriginal = ImageIO.read(f);
 
         stopwatch.start();
         BufferedImage mainImageAltered = alterImage(mainImageOriginal);
 
-        BufferedImage[] subImages = new BufferedImage[threads];
-        BufferedImage[] filteredSubImages = cutImages(mainImageAltered, threads);
+        BufferedImage[] subImages = cutImages(mainImageAltered, threads);
+        BufferedImage[] filteredSubImages = new BufferedImage[threads];
 
-
+        System.out.println("finished preparations, " + stopwatch.getDuration());
         try {
 
             // Create a ConnectionFactory
@@ -66,7 +67,7 @@ public class FilterClient {
                 producer.send(objMessage);
             }
 
-            System.out.println("waiting for response");
+            System.out.println("waiting for response " + stopwatch.getDuration());
             // Wait for the returning message
             int k = 0;
             while( k++ < threads) {
@@ -79,7 +80,7 @@ public class FilterClient {
                     BufferedImage receivedSubImage = converter.byteToImage(receivedMsg.getSubImage());
                     filteredSubImages[receivedMsg.getId()] = receivedSubImage;
 
-                    System.out.println("received: " + receivedMsg.toString());
+                    //System.out.println("received: " + receivedMsg.toString());
 
                 } else {
                     throw new IllegalArgumentException("Unexpected message " + message);
@@ -97,7 +98,7 @@ public class FilterClient {
                 heightCurr += filteredSubImages[j].getHeight();
             }
 
-            System.out.println("finished filter for photo " + photo + "\n" +
+            System.out.println("finished filter for photo " + photoPath + "\n" +
                     "It took " + stopwatch.getDuration() + " microSeconds to finish with " + threads + " threads");
 
             // Clean up
@@ -141,8 +142,8 @@ public class FilterClient {
 
 
     public static BufferedImage[] cutImages(BufferedImage img, int threads) {
-        int subHeight = img.getHeight() / threads;
-
+        int subHeight = (img.getHeight() - 2) / threads;
+        System.out.println("image height: " + img.getHeight() + " subHeight: " + subHeight);
         BufferedImage[] filteredSubImages = new BufferedImage[threads];
         for(int i = 0; i < threads; i++) {
             int startHeight = subHeight * i + 1;
